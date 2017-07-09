@@ -1,12 +1,13 @@
 //#include <stdio.h>
 #include <gb/gb.h>
-//#include <gb/drawing.h>
+#include <gb/drawing.h>
 
 //Sprite/Tile data
 #include "tileset.c"
 #include "l11.c"
 #include "qblock.c"
 #include "mario.c"
+#include "font.c"
 
 //Constants
 #define GRAVITY 2
@@ -14,6 +15,8 @@
 #define ZERO 128
 #define SCROLL_POS 70
 #define EVENT_DELAY 20
+#define WIDTH 144
+#define HEIGHT 160
 
 //Level scrolling data
 BOOLEAN scroll = 0;
@@ -35,7 +38,7 @@ UBYTE eventTimer = time;
 UBYTE qBlockFrame = 0;
 
 //Velocity and direction
-UINT32 pX = 20;
+UINT32 pX = 25;
 UINT32 pY = ZERO;
 BYTE velX = 0;
 BYTE velY = 0;
@@ -47,6 +50,7 @@ void drawMario();
 void drawBlock();
 void drawLevel();
 void collision();
+void drawHUD();
 void eventHandler();
 
 int main(){
@@ -64,6 +68,8 @@ int main(){
 		drawLevel();
 		//Draw Mario sprite
 		drawMario();
+		//Draw HUD
+		drawHUD();
 		//Show background layer
 		SHOW_BKG;
 	}
@@ -99,8 +105,14 @@ void init(){
 	move_sprite(0,pX,ZERO);
 	move_sprite(1,pX+8,ZERO);
 
+	//Initialize HUD
+	//set_win_data(0,40,font);
+	//set_win_tiles(0,0,8,8,font);
+	//move_win(0,0);
+
 	SHOW_BKG;
 	SHOW_SPRITES;
+	//SHOW_WIN;
 	DISPLAY_ON;
 	enable_interrupts();
 }
@@ -127,10 +139,10 @@ void drawMario(){
 		set_sprite_tile(1, 2+dir*4);
 	}
 
-	//Move sprite if necessary
+	//Move sprite if map is not scrolling
 	if(!scroll){
-		scroll_sprite(0,velX,velY);
-		scroll_sprite(1,velX,velY);
+		move_sprite(0,pX,pY);
+		move_sprite(1,pX+8,pY);
 	}
 }
 
@@ -165,6 +177,10 @@ void collision(){
 	}
 }
 
+void drawHUD(){
+	
+}
+
 void eventHandler(){
 	//Check if enough frame time has passed
 	if(time-eventTimer>EVENT_DELAY){
@@ -190,8 +206,8 @@ void eventHandler(){
 		else if(velY<-MAX_VEL) velY = -MAX_VEL;
 
 		//Limit position
-		if(pX<0) pX=0;
-		if(pX>SCROLL_POS) pX=SCROLL_POS;
+		//if(pX<0) pX=0;
+		//if(pX>WIDTH-16) pX=WIDTH-16;
 
 		//Check for colisions
 		collision();
@@ -201,10 +217,10 @@ void eventHandler(){
 		pY+=velY;
 
 		//Raise level scroll flag if needed
-		if(!end&&velX>0&&pX>=SCROLL_POS){
-		   	pX = SCROLL_POS;
+		//if(!end&&velX>0&&pX>=SCROLL_POS){
+		//   	pX = SCROLL_POS;
 			scroll = 1;
-		} else scroll = 0;
+		//} else scroll = 0;
 		
 		//Reset timer
 		eventTimer = time;
